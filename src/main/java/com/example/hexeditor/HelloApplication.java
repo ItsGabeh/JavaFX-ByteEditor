@@ -19,14 +19,9 @@ import javafx.stage.Stage;
 
 
 public class HelloApplication extends Application {
-
-    /* Define the variables used in this class */
     // Data is used by the tableView
     private final ObservableList<ObservableList<StringProperty>> data = FXCollections.observableArrayList();
-
-    // Selected rows of the ascii and hex editors
-    private SimpleIntegerProperty editorSelectedRow = new SimpleIntegerProperty(-1);
-    private SimpleIntegerProperty editorSelectedColumn = new SimpleIntegerProperty(-1);
+    private final ByteEditor byteEditor = new ByteEditor();
 
     @Override
     public void start(Stage stage) {
@@ -38,9 +33,6 @@ public class HelloApplication extends Application {
     }
 
     private Region createContent() {
-
-        ByteEditor byteEditor = new ByteEditor();
-        byteEditor.loadByteArray("Hola mundo".getBytes());
         byteEditor.setMinHeight(500);
         VBox vBox = new VBox(byteEditor);
         VBox content = new VBox(createTestInputRegion(), vBox);
@@ -60,7 +52,7 @@ public class HelloApplication extends Application {
 
         button.setOnAction(e -> {
             String text = textField.getText();
-            byteToHexObservableList(text.getBytes());
+            byteEditor.loadByteArray(text.getBytes());
         });
 
         HBox hbox = new HBox(label, textField, button);

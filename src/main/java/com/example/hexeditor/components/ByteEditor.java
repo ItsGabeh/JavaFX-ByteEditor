@@ -75,15 +75,10 @@ public class ByteEditor extends VBox {
 
         for (int i = 0; i < bytes.length; i += rowSize) {
             ObservableList<StringProperty> row = FXCollections.observableArrayList();
-
-            for (int j = 0; j < rowSize; j++) {
-                if (i + j < bytes.length) {
-                    byte b = bytes[i + j];
-                    String hex = Integer.toHexString(b);
-                    row.add(new SimpleStringProperty(hex));
-                } else {
-                    row.add(new SimpleStringProperty(""));
-                }
+            for (int j = 0; j < rowSize && i+j < bytes.length ;j++) {
+                byte b = bytes[i + j];
+                String hex = Integer.toHexString(b);
+                row.add(new SimpleStringProperty(hex));
             }
 
             data.add(row);
