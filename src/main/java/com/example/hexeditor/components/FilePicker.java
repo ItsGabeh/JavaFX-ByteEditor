@@ -1,5 +1,8 @@
 package com.example.hexeditor.components;
 
+import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -13,9 +16,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 
 public class FilePicker extends HBox {
-    File current = null;
+    private File current = null;
+    private final ByteEditor byteEditor;
 
-    public FilePicker() {
+    public FilePicker(ByteEditor byteEditor) {
+        this.byteEditor = byteEditor;
+
         // configure the HBox
         this.setSpacing(10);
         this.setAlignment(Pos.CENTER_LEFT);

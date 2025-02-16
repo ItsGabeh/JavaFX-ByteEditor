@@ -13,17 +13,23 @@ import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 
 
 public class App extends Application {
     // Data is used by the tableView
     private final ObservableList<ObservableList<StringProperty>> data = FXCollections.observableArrayList();
     private final ByteEditor byteEditor = new ByteEditor();
+    private File file;
 
     @Override
     public void start(Stage stage) {
-        Scene scene = new Scene(createContent(), 800, 600);
+        Scene scene = new Scene(createContent(), 1080, 600);
         stage.setScene(scene);
         stage.setResizable(false);
         stage.setTitle("Hex Editor");
@@ -31,14 +37,54 @@ public class App extends Application {
     }
 
     private Region createContent() {
-        VBox vBox = new VBox(byteEditor);
-        vBox.setPadding(new Insets(10));
-        vBox.setMaxHeight(250);
-        VBox content = new VBox(createTestInputRegion(), vBox);
+        byteEditor.setPadding(new Insets(10));
+        byteEditor.setMaxHeight(250);
+        VBox content = new VBox(createFilePicker(), byteEditor);
         content.setAlignment(Pos.CENTER);
         content.setSpacing(10);
 
         return content;
+    }
+
+    private Region createFilePicker() {
+        // create a text field
+        Button openButton = new Button("Open");
+        TextField fileName = new TextField();
+
+        // configure text field
+        fileName.setPromptText("Select a file");
+        fileName.setPrefWidth(300);
+        fileName.setMinWidth(300);
+        fileName.setMaxWidth(300);
+        fileName.setDisable(true);
+        fileName.setEditable(false);
+
+        // extension filter for file chooser
+        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("Text Files", "*.txt");
+
+        // configure the button
+        openButton.setOnAction(e -> {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Open File");
+            fileChooser.getExtensionFilters().add(extFilter);
+            File f = fileChooser.showOpenDialog(null);
+            if (f != null) {
+                file = f;
+                try {
+                    byteEditor.loadByteArray(readFile());
+                } catch (Exception ex) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR, "Error loading file", ButtonType.OK);
+                    alert.showAndWait();
+                }
+                fileName.setText(file.getAbsolutePath());
+            }
+        });
+
+        HBox hBox = new HBox(new Label("File"),openButton, fileName);
+        hBox.setAlignment(Pos.CENTER_LEFT);
+        hBox.setSpacing(10);
+        hBox.setPadding(new Insets(10));
+        return hBox;
     }
 
     private Region createTestInputRegion() {
@@ -71,6 +117,14 @@ public class App extends Application {
             }
             data.add(row);
         }
+    }
+
+    public byte[] readFile() throws IOException {
+        if (file != null) {
+            return Files.readAllBytes(file.toPath());
+        }
+
+        return null;
     }
 
     public static void main(String[] args) {
