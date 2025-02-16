@@ -2,11 +2,9 @@ package com.example.hexeditor;
 
 import com.example.hexeditor.components.ByteEditor;
 import javafx.application.Application;
-import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -18,7 +16,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 
-public class HelloApplication extends Application {
+public class App extends Application {
     // Data is used by the tableView
     private final ObservableList<ObservableList<StringProperty>> data = FXCollections.observableArrayList();
     private final ByteEditor byteEditor = new ByteEditor();
