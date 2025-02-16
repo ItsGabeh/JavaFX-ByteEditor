@@ -11,6 +11,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
+import java.nio.charset.StandardCharsets;
+
 /**
  * ByteEditor
  */
@@ -93,7 +95,7 @@ public class ByteEditor extends VBox {
         // index columns
         TableColumn<ObservableList<StringProperty>, String> rowIndexColumn = new TableColumn<>("#");
         rowIndexColumn.setCellValueFactory(row -> new SimpleStringProperty(
-                String.format("%02X", data.indexOf(row.getValue()) * 10)
+                String.valueOf(data.indexOf(row.getValue()) * 10) // Show the index in decimal format
         ));
         rowIndexColumn.setSortable(false);
         rowIndexColumn.setReorderable(false);
@@ -109,9 +111,15 @@ public class ByteEditor extends VBox {
                     if (isHex) {
                         return new SimpleStringProperty(hexValue);
                     } else {
-                        int intValue = Integer.parseInt(hexValue, 16);
-                        char asciiChar = (char) intValue;
-                        return new SimpleStringProperty(String.valueOf((intValue >= 32 && intValue <= 128) ? String.valueOf(asciiChar) : ""));
+//                        int intValue = Integer.parseInt(hexValue, 16);
+//                        char asciiChar = (char) intValue;
+//                        return new SimpleStringProperty(String.valueOf((intValue >= 32 && intValue <= 128) ? String.valueOf(asciiChar) : ""));
+
+                        // Convert correctly to utf 8 string representation
+                        long longValue = Long.parseLong(hexValue, 16);
+                        byte[] bytes = {(byte) longValue};
+                        String asciiValue = new String(bytes, StandardCharsets.UTF_8);
+                        return new SimpleStringProperty((longValue >= 32) ? asciiValue : "");
                     }
                 }
                 return new SimpleStringProperty(""); // no index errors
@@ -135,15 +143,24 @@ public class ByteEditor extends VBox {
                     // sync the tables
                     hexTable.getSelectionModel().clearAndSelect(row, hexTable.getColumns().get(col));
                     asciiTable.getSelectionModel().clearAndSelect(row, asciiTable.getColumns().get(col));
+                    // make both tables scroll to the same row
+                    hexTable.scrollTo(row);
+                    asciiTable.scrollTo(row);
 
                     // update spinner and text fields
                     posSpinner.getValueFactory().setValue(row * 10 + (col - 1));
                     String hex = data.get(row).get(col - 1).get();
                     hexTextField.setText(hex);
 
-                    int intValue = Integer.parseInt(hex, 16);
-                    char asciiChar = (char) intValue;
-                    asciiTextField.setText((intValue >= 32 && intValue <= 128) ? String.valueOf(asciiChar) : "");
+//                    int intValue = Integer.parseInt(hex, 16);
+//                    char asciiChar = (char) intValue;
+//                    asciiTextField.setText((intValue >= 32 && intValue <= 128) ? String.valueOf(asciiChar) : "");
+
+                    // correct utf 8 character conversion
+                    long longValue = Long.parseLong(hex, 16);
+                    byte[] bytes = {(byte) longValue};
+                    String asciiValue = new String(bytes, StandardCharsets.UTF_8);
+                    asciiTextField.setText((longValue >= 32) ? asciiValue : "");
                 }
             }
         };
@@ -196,9 +213,14 @@ public class ByteEditor extends VBox {
         hexTextField.textProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue.matches("[0-9a-f]{0,2}")) {
                 if (newValue.length() == 2) {
-                    int intValue = Integer.parseInt(newValue, 16);
-                    char asciiChar = (char) intValue;
-                    asciiTextField.setText((intValue >= 32 && intValue <= 126) ? String.valueOf(asciiChar) : "");
+//                    int intValue = Integer.parseInt(newValue, 16);
+//                    char asciiChar = (char) intValue;
+//                    asciiTextField.setText((intValue >= 32 && intValue <= 126) ? String.valueOf(asciiChar) : "");
+
+                    long longValue = Long.parseLong(newValue, 16);
+                    byte[] bytes = {(byte) longValue};
+                    String asciiValue = new String(bytes, StandardCharsets.UTF_8);
+                    asciiTextField.setText(asciiValue.trim());
                 }
             } else {
                 hexTextField.setText(oldValue);
@@ -208,8 +230,15 @@ public class ByteEditor extends VBox {
         asciiTextField.textProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue.length() <= 1) {
                 if (!newValue.isEmpty()) {
-                    char asciiChar = newValue.charAt(0);
-                    hexTextField.setText(Integer.toHexString(asciiChar));
+//                    char asciiChar = newValue.charAt(0);
+//                    hexTextField.setText(Integer.toHexString(asciiChar));
+
+                    byte[] bytes = newValue.getBytes(StandardCharsets.UTF_8);
+                    StringBuilder hexValue = new StringBuilder();
+                    for (byte b : bytes) {
+                        hexValue.append(String.format("%02X", b));
+                    }
+                    hexTextField.setText(hexValue.toString());
                 }
             } else {
                 asciiTextField.setText(oldValue);
