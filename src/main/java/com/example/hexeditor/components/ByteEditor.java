@@ -186,8 +186,39 @@ public class ByteEditor extends VBox {
                 }
 
                 data.get(row).get(col).set(newHex);
+                // Refresh needed
+                asciiTable.refresh();
+                hexTable.refresh();
             }
         });
+
+        // add listeners to textfields
+        hexTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue.matches("[0-9a-f]{0,2}")) {
+                if (newValue.length() == 2) {
+                    int intValue = Integer.parseInt(newValue, 16);
+                    char asciiChar = (char) intValue;
+                    asciiTextField.setText((intValue >= 32 && intValue <= 126) ? String.valueOf(asciiChar) : "");
+                }
+            } else {
+                hexTextField.setText(oldValue);
+            }
+        });
+
+        asciiTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue.length() <= 1) {
+                if (!newValue.isEmpty()) {
+                    char asciiChar = newValue.charAt(0);
+                    hexTextField.setText(Integer.toHexString(asciiChar));
+                }
+            } else {
+                asciiTextField.setText(oldValue);
+            }
+        });
+
+        asciiTextField.setEditable(true);
+        hexTextField.setEditable(true);
+
     }
 
     private Region createEditorPanel() {
