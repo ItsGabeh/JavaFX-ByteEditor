@@ -216,8 +216,9 @@ public class ByteEditor extends VBox {
             }
         });
 
-        asciiTextField.setEditable(true);
-        hexTextField.setEditable(true);
+        asciiTextField.disableProperty().bind(posSpinner.disabledProperty());
+        hexTextField.disableProperty().bind(posSpinner.disabledProperty());
+        saveButton.disableProperty().bind(posSpinner.disabledProperty());
 
     }
 
