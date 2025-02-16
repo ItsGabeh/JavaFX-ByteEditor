@@ -21,7 +21,7 @@ public class ByteEditor extends VBox {
     private final TableView<ObservableList<StringProperty>> hexTable = new TableView<>();
 
     /* ObservableList of StringProperty */
-    private final ObservableList<ObservableList<StringProperty>> data;
+    private final ObservableList<ObservableList<StringProperty>> data = FXCollections.observableArrayList();
 
     /* Editor layout components */
     private final Spinner<Integer> posSpinner = new Spinner<>();
@@ -29,13 +29,13 @@ public class ByteEditor extends VBox {
     private final TextField hexTextField = new TextField();
     private final Button saveButton = new Button("Save");
 
-    public ByteEditor(ObservableList<ObservableList<StringProperty>> data) {
+    public ByteEditor() {
         // convert byte array to ob list
-        this.data = data;
+        // this.data = data;
 
         // config tables
-        setupTable(asciiTable);
-        setupTable(hexTable);
+        setupTable(asciiTable, false);
+        setupTable(hexTable, true);
         syncSelection();
 
         // config edition layout
@@ -65,9 +65,11 @@ public class ByteEditor extends VBox {
         VBox mainVbox = new VBox(splitPane, createEditorPanel());
         mainVbox.setAlignment(Pos.CENTER);
         mainVbox.setSpacing(10);
+
+        this.getChildren().add(mainVbox);
     }
 
-    private void loadByteArray(byte[] bytes) {
+    public void loadByteArray(byte[] bytes) {
         data.clear();
         int rowSize = 10;
 
@@ -88,7 +90,7 @@ public class ByteEditor extends VBox {
         }
     }
 
-    private void setupTable(TableView<ObservableList<StringProperty>> table) {
+    private void setupTable(TableView<ObservableList<StringProperty>> table, boolean isHex) {
         table.getSelectionModel().setCellSelectionEnabled(true);
         table.setEditable(false);
         table.setItems(data);
@@ -108,7 +110,14 @@ public class ByteEditor extends VBox {
             TableColumn<ObservableList<StringProperty>, String> column = new TableColumn<>(String.valueOf(i));
             column.setCellValueFactory(row -> {
                 if (columnIndex < row.getValue().size()) {
-                    return row.getValue().get(columnIndex);
+                    String hexValue = row.getValue().get(columnIndex).get();
+                    if (isHex) {
+                        return new SimpleStringProperty(hexValue);
+                    } else {
+                        int intValue = Integer.parseInt(hexValue, 16);
+                        char asciiChar = (char) intValue;
+                        return new SimpleStringProperty(String.valueOf((intValue >= 32 && intValue <= 128) ? String.valueOf(asciiChar) : ""));
+                    }
                 }
                 return new SimpleStringProperty(""); // no index errors
             });
