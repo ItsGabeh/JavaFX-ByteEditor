@@ -87,6 +87,26 @@ public class App extends Application {
         return hBox;
     }
 
+    private Region createOperationsRegion() {
+        // TODO
+        return null;
+    }
+
+    private Region createEncryptionRegion() {
+        // TODO
+        return null;
+    }
+
+    private Region createDecryptionRegion() {
+        // TODO
+        return null;
+    }
+
+    private Region createHashRegion() {
+        // TODO
+        return null;
+    }
+
     private Region createTestInputRegion() {
         // Create a Label
         Label label = new Label("This is a test input area");
