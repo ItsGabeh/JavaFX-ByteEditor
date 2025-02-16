@@ -33,8 +33,9 @@ public class HelloApplication extends Application {
     }
 
     private Region createContent() {
-        byteEditor.setMinHeight(500);
         VBox vBox = new VBox(byteEditor);
+        vBox.setPadding(new Insets(10));
+        vBox.setMaxHeight(250);
         VBox content = new VBox(createTestInputRegion(), vBox);
         content.setAlignment(Pos.CENTER);
         content.setSpacing(10);
