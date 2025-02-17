@@ -26,6 +26,7 @@ public class App extends Application {
     private final ObservableList<ObservableList<StringProperty>> data = FXCollections.observableArrayList();
     private final ByteEditor byteEditor = new ByteEditor(); // This byteEditor is used to see original file
     private final ByteEditor encryptedByteEditor = new ByteEditor(); // This byteEditor is used to see encrypted file
+    private byte[] encryptedBytes; // stores the encrypted bytes for general use
     private File file;
 
     @Override
@@ -94,8 +95,32 @@ public class App extends Application {
     }
 
     private Region createEncryptionRegion() {
-        // TODO
-        return null;
+        encryptedByteEditor.setPadding(new Insets(10));
+        encryptedByteEditor.setMaxHeight(250);
+
+        // bottom HBox
+        TextField password = new TextField("0000");
+        Button encryptButton = new Button("Encrypt");
+        Button saveButton = new Button("Save");
+        HBox encryptionHbox = new HBox(
+                new Label("Password"),
+                password,
+                encryptButton,
+                saveButton
+        );
+        encryptionHbox.setAlignment(Pos.CENTER);
+        encryptionHbox.setSpacing(10);
+
+        // TODO add event of encryption on button
+
+        // TODO add event of save encryption to a file on button
+
+        // main region
+        VBox encryptionRegion = new VBox(encryptedByteEditor, encryptionHbox);
+        encryptionRegion.setAlignment(Pos.CENTER);
+        encryptionRegion.setSpacing(10);
+
+        return encryptionRegion;
     }
 
     private Region createDecryptionRegion() {
