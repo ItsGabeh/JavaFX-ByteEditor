@@ -28,12 +28,14 @@ public class App extends Application {
     private final ObservableList<ObservableList<StringProperty>> data = FXCollections.observableArrayList();
     private final ByteEditor byteEditor = new ByteEditor(); // This byteEditor is used to see original file
     private final ByteEditor encryptedByteEditor = new ByteEditor(); // This byteEditor is used to see encrypted file
+    private final ByteEditor decryptedByteEditor = new ByteEditor();
+    private final ByteEditor hashByteEditor = new ByteEditor();
     private byte[] encryptedBytes; // stores the encrypted bytes for general use
     private File file;
 
     @Override
     public void start(Stage stage) {
-        Scene scene = new Scene(createContent(), 1080, 600);
+        Scene scene = new Scene(createContent(), 1080, 800);
         stage.setScene(scene);
         stage.setResizable(false);
         stage.setTitle("Hex Editor");
@@ -43,7 +45,7 @@ public class App extends Application {
     private Region createContent() {
         byteEditor.setPadding(new Insets(10));
         byteEditor.setMaxHeight(250);
-        VBox content = new VBox(createFilePicker(), byteEditor, createOperationsRegion());
+        VBox content = new VBox(createFilePicker(), byteEditor, createOperationsRegion(), createLogRegion());
         content.setAlignment(Pos.CENTER);
         content.setSpacing(10);
 
@@ -102,7 +104,7 @@ public class App extends Application {
         decryptionTab.setClosable(false);
         hashTab.setClosable(false);
 
-        encryptionTab.setContent(encryptedByteEditor);
+        encryptionTab.setContent(createEncryptionRegion());
         decryptionTab.setContent(new Rectangle(10, 10, Color.DARKGREEN));
         hashTab.setContent(new Rectangle(10, 10, Color.ROYALBLUE));
         tabPane.getTabs().addAll(encryptionTab, decryptionTab, hashTab);
@@ -111,6 +113,21 @@ public class App extends Application {
         vBox.setAlignment(Pos.CENTER);
         vBox.setSpacing(10);
         vBox.setPadding(new Insets(10));
+        return vBox;
+    }
+
+    private Region createLogRegion() {
+        TextArea logArea = new TextArea();
+        logArea.setEditable(false);
+        logArea.setWrapText(true);
+
+        Button cleanButton = new Button("Clean");
+        VBox vBox = new VBox(logArea, cleanButton);
+        vBox.setAlignment(Pos.CENTER);
+        vBox.setSpacing(10);
+        vBox.setPadding(new Insets(10));
+        vBox.setMaxHeight(250);
+        vBox.setMinHeight(250);
         return vBox;
     }
 
