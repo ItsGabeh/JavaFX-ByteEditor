@@ -13,6 +13,8 @@ import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -41,7 +43,7 @@ public class App extends Application {
     private Region createContent() {
         byteEditor.setPadding(new Insets(10));
         byteEditor.setMaxHeight(250);
-        VBox content = new VBox(createFilePicker(), byteEditor);
+        VBox content = new VBox(createFilePicker(), byteEditor, createOperationsRegion());
         content.setAlignment(Pos.CENTER);
         content.setSpacing(10);
 
@@ -90,8 +92,26 @@ public class App extends Application {
     }
 
     private Region createOperationsRegion() {
-        // TODO
-        return null;
+        TabPane tabPane = new TabPane();
+        Tab encryptionTab = new Tab("Encryption");
+        Tab decryptionTab = new Tab("Decryption");
+        Tab hashTab = new Tab("Hash");
+
+        tabPane.setMaxHeight(270);
+        encryptionTab.setClosable(false);
+        decryptionTab.setClosable(false);
+        hashTab.setClosable(false);
+
+        encryptionTab.setContent(encryptedByteEditor);
+        decryptionTab.setContent(new Rectangle(10, 10, Color.DARKGREEN));
+        hashTab.setContent(new Rectangle(10, 10, Color.ROYALBLUE));
+        tabPane.getTabs().addAll(encryptionTab, decryptionTab, hashTab);
+
+        VBox vBox = new VBox(tabPane);
+        vBox.setAlignment(Pos.CENTER);
+        vBox.setSpacing(10);
+        vBox.setPadding(new Insets(10));
+        return vBox;
     }
 
     private Region createEncryptionRegion() {
