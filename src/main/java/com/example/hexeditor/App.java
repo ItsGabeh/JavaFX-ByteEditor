@@ -24,7 +24,8 @@ import java.nio.file.Files;
 public class App extends Application {
     // Data is used by the tableView
     private final ObservableList<ObservableList<StringProperty>> data = FXCollections.observableArrayList();
-    private final ByteEditor byteEditor = new ByteEditor();
+    private final ByteEditor byteEditor = new ByteEditor(); // This byteEditor is used to see original file
+    private final ByteEditor encryptedByteEditor = new ByteEditor(); // This byteEditor is used to see encrypted file
     private File file;
 
     @Override

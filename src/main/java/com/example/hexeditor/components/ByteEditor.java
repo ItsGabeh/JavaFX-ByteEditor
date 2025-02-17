@@ -87,6 +87,11 @@ public class ByteEditor extends VBox {
         }
     }
 
+    public void refreshTables() {
+        asciiTable.refresh();
+        hexTable.refresh();
+    }
+
     private void setupTable(TableView<ObservableList<StringProperty>> table, boolean isHex) {
         table.getSelectionModel().setCellSelectionEnabled(true);
         table.setEditable(false);
