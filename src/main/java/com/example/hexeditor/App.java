@@ -1,6 +1,7 @@
 package com.example.hexeditor;
 
 import com.example.hexeditor.components.ByteEditor;
+import com.example.hexeditor.components.Utils;
 import javafx.application.Application;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -18,9 +19,10 @@ import javafx.scene.shape.Rectangle;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
+import java.time.LocalDate;
+import java.util.Arrays;
 
 
 public class App extends Application {
@@ -30,7 +32,8 @@ public class App extends Application {
     private final ByteEditor encryptedByteEditor = new ByteEditor(); // This byteEditor is used to see encrypted file
     private final ByteEditor decryptedByteEditor = new ByteEditor();
     private final ByteEditor hashByteEditor = new ByteEditor();
-    private byte[] encryptedBytes; // stores the encrypted bytes for general use
+    private byte[] encryptedBytes;// stores the encrypted bytes for general use
+    private String encryptedString;
     private File file;
 
     @Override
@@ -148,9 +151,44 @@ public class App extends Application {
         encryptionHbox.setAlignment(Pos.CENTER);
         encryptionHbox.setSpacing(10);
 
-        // TODO add event of encryption on button
+        encryptButton.setOnAction(e -> {
+            String encryptedPassword = password.getText();
+            byte[] read = null;
+            // Read the file
+            try {
+                read = readFile();
+                System.out.println(Arrays.toString(read));
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+
+            String encrypted = Utils.encrypt(read, encryptedPassword);// change this to read the file
+            System.out.println(encrypted);
+//            encryptedBytes = encrypted.getBytes();
+//            System.out.println(Arrays.toString(encryptedBytes));
+//            encryptedByteEditor.loadByteArray(encryptedBytes);
+            encryptedString = encrypted;
+            System.out.println(encryptedString);
+            encryptedByteEditor.loadByteArray(encryptedString.getBytes());
+        });
 
         // TODO add event of save encryption to a file on button
+        saveButton.setOnAction(e -> {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Save File");
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text Files", "*.txt"));
+            fileChooser.setInitialFileName("encrypted" + LocalDate.now().toString() + ".txt");
+            fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
+            File f = fileChooser.showSaveDialog(null);
+            if (f != null) {
+                try (PrintWriter pw = new PrintWriter(f)){
+                    pw.write(encryptedString);
+                    System.out.println("Saved file: " + f.getAbsolutePath());
+                } catch (FileNotFoundException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+        });
 
         // main region
         VBox encryptionRegion = new VBox(encryptedByteEditor, encryptionHbox);
@@ -190,7 +228,7 @@ public class App extends Application {
     }
 
     // Fill the data list with hexadecimal data
-    private void byteToHexObservableList(byte[] bytes) {
+    private void byteToHexObservableList(byte[] bytes, ObservableList<ObservableList<StringProperty>> data) {
         data.clear();
         for (int i = 0; i < bytes.length; i += 10) {
             ObservableList<StringProperty> row = FXCollections.observableArrayList();
