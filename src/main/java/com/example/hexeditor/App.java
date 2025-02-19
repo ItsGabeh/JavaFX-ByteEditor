@@ -26,20 +26,17 @@ import java.util.Arrays;
 
 
 public class App extends Application {
-    // Data is used by the tableView
-    private final ObservableList<ObservableList<StringProperty>> data = FXCollections.observableArrayList();
     private final ByteEditor byteEditor = new ByteEditor(); // This byteEditor is used to see original file
     private final ByteEditor encryptedByteEditor = new ByteEditor(); // This byteEditor is used to see encrypted file
     private final ByteEditor decryptedByteEditor = new ByteEditor();
     private final ByteEditor hashByteEditor = new ByteEditor();
     private byte[] encryptedBytes;// stores the encrypted bytes for general use
-    private String encryptedString;
     TextArea logArea = new TextArea();
     private File file;
 
     @Override
     public void start(Stage stage) {
-        Scene scene = new Scene(createContent(), 1080, 800);
+        Scene scene = new Scene(createContent(), 800, 850);
         stage.setScene(scene);
         stage.setResizable(false);
         stage.setTitle("Hex Editor");
@@ -70,13 +67,13 @@ public class App extends Application {
         fileName.setEditable(false);
 
         // extension filter for file chooser
-        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("Text Files", "*.txt");
+        // FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("Text Files", "*.txt");
 
         // configure the button
         openButton.setOnAction(e -> {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Open File");
-            fileChooser.getExtensionFilters().add(extFilter);
+//            fileChooser.getExtensionFilters().add(extFilter);
             File f = fileChooser.showOpenDialog(null);
             if (f != null) {
                 file = f;
@@ -90,7 +87,7 @@ public class App extends Application {
             }
         });
 
-        HBox hBox = new HBox(new Label("File"),openButton, fileName);
+        HBox hBox = new HBox(new Label("File"),fileName, openButton);
         hBox.setAlignment(Pos.CENTER_LEFT);
         hBox.setSpacing(10);
         hBox.setPadding(new Insets(10));
@@ -129,8 +126,8 @@ public class App extends Application {
         vBox.setAlignment(Pos.CENTER);
         vBox.setSpacing(10);
         vBox.setPadding(new Insets(10));
-        vBox.setMaxHeight(250);
-        vBox.setMinHeight(250);
+        vBox.setMaxHeight(200);
+        vBox.setMinHeight(200);
         return vBox;
     }
 
@@ -157,7 +154,7 @@ public class App extends Application {
             // Read the file
             try {
                 read = readFile();
-                System.out.println(Arrays.toString(read));
+//                System.out.println(Arrays.toString(read));
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
@@ -170,23 +167,22 @@ public class App extends Application {
 //            encryptedString = encrypted;
 //            System.out.println(encryptedString);
 //            encryptedByteEditor.loadByteArray(encryptedString.getBytes());
-            for (byte b : encryptedBytes) {
-                System.out.print(b);
-                System.out.print(" ");
-            }
-            System.out.println(encryptedString);
+//            for (byte b : encryptedBytes) {
+//                System.out.print(b);
+//                System.out.print(" ");
+//            }
+            // System.out.println(encryptedString);
             encryptedByteEditor.loadByteArray(encryptedBytes);
             // Utils.printLogTo(logArea);
             Utils.clearLog();
         });
 
-        // TODO add event of save encryption to a file on button
         saveButton.setOnAction(e -> {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Save File");
-            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text Files", "*.txt"));
-            fileChooser.setInitialFileName("encrypted" + LocalDate.now().toString() + ".txt");
-            fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
+            // fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text Files", "*.txt"));
+            // fileChooser.setInitialFileName("encrypted" + LocalDate.now().toString() + ".txt");
+            fileChooser.setInitialDirectory(new File(System.getProperty("user.home") + "/Documents"));
             File f = fileChooser.showSaveDialog(null);
             if (f != null) {
                 try (FileOutputStream fos = new FileOutputStream(f)){
@@ -225,11 +221,11 @@ public class App extends Application {
 
         decrypButton.setOnAction(e -> {
             String decryptedPassword = password.getText();
-            byte[] result = Utils.decrypt(encryptedBytes, decryptedPassword);
-            for (byte b : result) {
-                System.out.print(b);
-                System.out.print(" ");
-            }
+//            byte[] result = Utils.decrypt(encryptedBytes, decryptedPassword);
+//            for (byte b : result) {
+//                System.out.print(b);
+//                System.out.print(" ");
+//            }
             decryptedByteEditor.loadByteArray(Utils.decrypt(encryptedBytes, decryptedPassword));
             // Utils.printLogTo(logArea);
             // Utils.clearLog();
