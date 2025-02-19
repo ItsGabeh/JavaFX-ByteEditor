@@ -18,14 +18,13 @@ public class Utils {
         // Get first byte of password and add it to all bytes
         char firstByte = (char) (password.charAt(0) - '0');
         for (int i = 0; i < plainText.length; i++) {
-            result[i] = result[i] <= 117 ? (byte) (firstByte + result[i]) : result[i];
+            result[i] = (byte) ((result[i] + firstByte) % 127); // Suma con módulo 256
         }
-
         // Step 2:
         // Get last byte from password and add it to all bytes
         char lastByte = (char) (password.charAt(password.length() - 1) - '0');
         for (int i = 0; i < plainText.length; i++) {
-            result[i] = result[i] <= 117 ? (byte) (lastByte + result[i]) : result[i];
+            result[i] = (byte) ((result[i] + lastByte) % 127); // Suma con módulo 256
         }
 
         // Step 3
@@ -47,9 +46,9 @@ public class Utils {
         for (int i = 0; i < plainText.length; i++) {
             result[i] = (byte) (result[i] ^ leftMiddle);
         }
-//
-//        // Step 6
-//        // left shift bytes by 3
+
+        // Step 6
+        // left shift bytes by 3
         byte bits = 8;
         for (int i = 0; i < plainText.length; i++) {
             result[i] = (byte) leftRotate(result[i], 4);
@@ -57,8 +56,8 @@ public class Utils {
 
         // Step 7
         // divide password in 2
-        byte left = (byte) (firstByte + (password.charAt(1) - '0'));
-        byte r = (byte) (lastByte + (password.charAt(2) - '0'));
+        byte left = (byte) (password.charAt(0) - '0'+ (password.charAt(1) - '0'));
+        byte r = (byte) (password.charAt(3) - '0' + (password.charAt(2) - '0'));
         for (int i = 0; i < plainText.length; i++) {
             result[i] = (byte) (result[i] % 2 == 0 ? result[i] ^ left : result[i] ^ r);
         }
@@ -123,19 +122,23 @@ public class Utils {
         byte left = (byte) (password.charAt(0) - '0' + (password.charAt(1) - '0'));
         byte r = (byte) (password.charAt(3) - '0' + (password.charAt(2) - '0'));
         for (int i = 0; i < result.length; i++) {
-            result[i] = (byte) (result[i] % 2 == 0 ? result[i] ^ left : result[i] ^ r);
+            if ((result[i] ^ left) % 2 == 0) {
+                result[i] = (byte) (result[i] ^ left);
+            } else {
+                result[i] = (byte) (result[i] ^ r);
+            }
         }
 
-//        // step 4
-//        // revert right shift by 3
+        // step 4
+        // revert right shift by 3
         byte bits = 8;
         for (int i = 0; i < cipherText.length; i++) {
             result[i] = (byte) rigthRotate(result[i], 4);
             // result[i] = (byte) Integer.rotateLeft(result[i], bits);
         }
-//
-//        // step 5
-//        // Get the left middle of password and multiply it by 2
+
+        // step 5
+        // Get the left middle of password and multiply it by 2
         byte leftMiddle = password.charAt(1) > '0' ? (byte) ((password.charAt(1) - '0') / 2) : 2;
         for (int i = 0; i < cipherText.length; i++) {
             result[i] = (byte) (result[i] ^ leftMiddle);
@@ -157,14 +160,14 @@ public class Utils {
         // get last byte of password and subtract it
         byte lastByte = (byte) (password.charAt(password.length() - 1) - '0');
         for (int i = 0; i < result.length; i++) {
-            result[i] = result[i] <= 117 ? (byte) (lastByte + result[i]) : result[i];
+            result[i] = (byte) ((result[i] - lastByte + 127) % 127);
         }
 
         // step 9
         // get  first byte of password and subtract it
         byte firstByte = (byte) (password.charAt(0) - '0');
         for (int i = 0; i < result.length; i++) {
-                result[i] = result[i] <= 117 ? (byte) (firstByte + result[i]) : result[i];
+            result[i] = (byte) ((result[i] - firstByte + 127) % 127); // Resta con módulo 256
         }
 
         return result;
