@@ -34,6 +34,7 @@ public class App extends Application {
     private final ByteEditor hashByteEditor = new ByteEditor();
     private byte[] encryptedBytes;// stores the encrypted bytes for general use
     private String encryptedString;
+    TextArea logArea = new TextArea();
     private File file;
 
     @Override
@@ -108,7 +109,7 @@ public class App extends Application {
         hashTab.setClosable(false);
 
         encryptionTab.setContent(createEncryptionRegion());
-        decryptionTab.setContent(new Rectangle(10, 10, Color.DARKGREEN));
+        decryptionTab.setContent(createDecryptionRegion());
         hashTab.setContent(new Rectangle(10, 10, Color.ROYALBLUE));
         tabPane.getTabs().addAll(encryptionTab, decryptionTab, hashTab);
 
@@ -120,7 +121,6 @@ public class App extends Application {
     }
 
     private Region createLogRegion() {
-        TextArea logArea = new TextArea();
         logArea.setEditable(false);
         logArea.setWrapText(true);
 
@@ -162,14 +162,22 @@ public class App extends Application {
                 throw new RuntimeException(ex);
             }
 
-            String encrypted = Utils.encrypt(read, encryptedPassword);// change this to read the file
-            System.out.println(encrypted);
+            encryptedBytes = Utils.encrypt(read, encryptedPassword);// change this to read the file
+//            System.out.println(encrypted);
 //            encryptedBytes = encrypted.getBytes();
 //            System.out.println(Arrays.toString(encryptedBytes));
 //            encryptedByteEditor.loadByteArray(encryptedBytes);
-            encryptedString = encrypted;
+//            encryptedString = encrypted;
+//            System.out.println(encryptedString);
+//            encryptedByteEditor.loadByteArray(encryptedString.getBytes());
+            for (byte b : encryptedBytes) {
+                System.out.print(b);
+                System.out.print(" ");
+            }
             System.out.println(encryptedString);
-            encryptedByteEditor.loadByteArray(encryptedString.getBytes());
+            encryptedByteEditor.loadByteArray(encryptedBytes);
+            // Utils.printLogTo(logArea);
+            Utils.clearLog();
         });
 
         // TODO add event of save encryption to a file on button
@@ -181,10 +189,11 @@ public class App extends Application {
             fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
             File f = fileChooser.showSaveDialog(null);
             if (f != null) {
-                try (PrintWriter pw = new PrintWriter(f)){
-                    pw.write(encryptedString);
+                try (FileOutputStream fos = new FileOutputStream(f)){
+                    // pw.write(encryptedString);
+                    fos.write(encryptedBytes);
                     System.out.println("Saved file: " + f.getAbsolutePath());
-                } catch (FileNotFoundException ex) {
+                }  catch (IOException ex) {
                     throw new RuntimeException(ex);
                 }
             }
@@ -199,8 +208,40 @@ public class App extends Application {
     }
 
     private Region createDecryptionRegion() {
-        // TODO
-        return null;
+        decryptedByteEditor.setPadding(new Insets(10));
+        decryptedByteEditor.setMaxHeight(250);
+        TextField password = new TextField("0000");
+        Button decrypButton = new Button("Decrypt");
+        Button saveButton = new Button("Save");
+        HBox decryptionHbox = new HBox(
+                new Label("Password"),
+                password,
+                decrypButton,
+                saveButton
+        );
+
+        decryptionHbox.setAlignment(Pos.CENTER);
+        decryptionHbox.setSpacing(10);
+
+        decrypButton.setOnAction(e -> {
+            String decryptedPassword = password.getText();
+            byte[] result = Utils.decrypt(encryptedBytes, decryptedPassword);
+            for (byte b : result) {
+                System.out.print(b);
+                System.out.print(" ");
+            }
+            decryptedByteEditor.loadByteArray(Utils.decrypt(encryptedBytes, decryptedPassword));
+            // Utils.printLogTo(logArea);
+            // Utils.clearLog();
+//            System.out.println(encryptedString.getBytes());
+//            System.out.println(Utils.decrypt(encryptedString.getBytes(), decryptedPassword));
+        });
+
+        VBox decryptionRegion = new VBox(decryptedByteEditor, decryptionHbox);
+        decryptionRegion.setAlignment(Pos.CENTER);
+        decryptionRegion.setSpacing(10);
+
+        return decryptionRegion;
     }
 
     private Region createHashRegion() {
