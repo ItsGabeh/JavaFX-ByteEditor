@@ -170,7 +170,34 @@ public class Utils {
         return result;
     }
 
+    public static String hash(byte[] data) {
+        // Step 1 acc inspired in FNV-1a
+        long acc = 0x811C9DC5L;
 
+        // Step 2 and 3 iterate bytes, xor and mult by a const
+        for (byte b : data) {
+            acc ^= (b & 0xFF);      // XOR no sign
+            acc *= 0x01000193L;
+        }
+
+        // Step 4 sum array length
+        acc += data.length;
+
+        // NO SIGNS, get abs of acc
+        acc = Math.abs(acc);
+
+        // Step 5 acc to base 36 string
+        String hashStr = Long.toString(acc, 36);
+
+        // Step 6 fill the string with 10 chars
+        if (hashStr.length() < 10) {
+            hashStr = String.format("%10s", hashStr).replace(' ', '0'); // fill with zeros
+        } else if (hashStr.length() > 10) {
+            hashStr = hashStr.substring(0, 10); // Trunk
+        }
+
+        return hashStr;
+    }
 
 
     public static void clearLog() {

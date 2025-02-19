@@ -14,8 +14,6 @@ import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -107,7 +105,7 @@ public class App extends Application {
 
         encryptionTab.setContent(createEncryptionRegion());
         decryptionTab.setContent(createDecryptionRegion());
-        hashTab.setContent(new Rectangle(10, 10, Color.ROYALBLUE));
+        hashTab.setContent(createHashRegion());
         tabPane.getTabs().addAll(encryptionTab, decryptionTab, hashTab);
 
         VBox vBox = new VBox(tabPane);
@@ -186,7 +184,6 @@ public class App extends Application {
             File f = fileChooser.showSaveDialog(null);
             if (f != null) {
                 try (FileOutputStream fos = new FileOutputStream(f)){
-                    // pw.write(encryptedString);
                     fos.write(encryptedBytes);
                     System.out.println("Saved file: " + f.getAbsolutePath());
                 }  catch (IOException ex) {
@@ -241,8 +238,32 @@ public class App extends Application {
     }
 
     private Region createHashRegion() {
-        // TODO
-        return null;
+        hashByteEditor.setPadding(new Insets(10));
+        hashByteEditor.setMaxHeight(250);
+
+        TextField hashText = new TextField("");
+        hashText.setEditable(false);
+        Button hashButton = new Button("Hash");
+        hashButton.setOnAction(e -> {
+            byte[] read = null;
+            // Read the file
+            try {
+                read = readFile();
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+            String hash = Utils.hash(read);
+            hashByteEditor.loadByteArray(hash.getBytes());
+            hashText.setText(hash);
+        });
+        HBox hashHbox = new HBox(hashText, hashButton);
+        hashHbox.setAlignment(Pos.CENTER);
+        hashHbox.setSpacing(10);
+
+        VBox hashRegion = new VBox(hashByteEditor, hashHbox);
+        hashRegion.setAlignment(Pos.CENTER);
+        hashRegion.setSpacing(10);
+        return hashRegion;
     }
 
     private Region createTestInputRegion() {
