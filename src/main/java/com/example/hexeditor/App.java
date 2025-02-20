@@ -241,6 +241,15 @@ public class App extends Application {
         return null;
     }
 
+    public void saveToFile(byte[] data, File file) throws IOException {
+        if (file != null) {
+            try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file))) {
+                bos.write(data);
+                bos.flush();
+            }
+        }
+    }
+
     public static void main(String[] args) {
         launch();
     }
