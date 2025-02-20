@@ -3,10 +3,6 @@ package com.example.hexeditor;
 import com.example.hexeditor.components.ByteEditor;
 import com.example.hexeditor.components.Utils;
 import javafx.application.Application;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -18,9 +14,6 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.time.LocalDate;
-import java.util.Arrays;
 
 
 public class App extends Application {
@@ -65,13 +58,11 @@ public class App extends Application {
         fileName.setEditable(false);
 
         // extension filter for file chooser
-        // FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("Text Files", "*.txt");
 
         // configure the button
         openButton.setOnAction(e -> {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Open File");
-//            fileChooser.getExtensionFilters().add(extFilter);
             File f = fileChooser.showOpenDialog(null);
             if (f != null) {
                 file = f;
@@ -148,38 +139,21 @@ public class App extends Application {
 
         encryptButton.setOnAction(e -> {
             String encryptedPassword = password.getText();
-            byte[] read = null;
+            byte[] read;
             // Read the file
             try {
                 read = readFile();
-//                System.out.println(Arrays.toString(read));
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
 
             encryptedBytes = Utils.encrypt(read, encryptedPassword);// change this to read the file
-//            System.out.println(encrypted);
-//            encryptedBytes = encrypted.getBytes();
-//            System.out.println(Arrays.toString(encryptedBytes));
-//            encryptedByteEditor.loadByteArray(encryptedBytes);
-//            encryptedString = encrypted;
-//            System.out.println(encryptedString);
-//            encryptedByteEditor.loadByteArray(encryptedString.getBytes());
-//            for (byte b : encryptedBytes) {
-//                System.out.print(b);
-//                System.out.print(" ");
-//            }
-            // System.out.println(encryptedString);
             encryptedByteEditor.loadByteArray(encryptedBytes);
-            // Utils.printLogTo(logArea);
-            Utils.clearLog();
         });
 
         saveButton.setOnAction(e -> {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Save File");
-            // fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text Files", "*.txt"));
-            // fileChooser.setInitialFileName("encrypted" + LocalDate.now().toString() + ".txt");
             fileChooser.setInitialDirectory(new File(System.getProperty("user.home") + "/Documents"));
             File f = fileChooser.showSaveDialog(null);
             if (f != null) {
@@ -218,16 +192,7 @@ public class App extends Application {
 
         decrypButton.setOnAction(e -> {
             String decryptedPassword = password.getText();
-//            byte[] result = Utils.decrypt(encryptedBytes, decryptedPassword);
-//            for (byte b : result) {
-//                System.out.print(b);
-//                System.out.print(" ");
-//            }
             decryptedByteEditor.loadByteArray(Utils.decrypt(encryptedBytes, decryptedPassword));
-            // Utils.printLogTo(logArea);
-            // Utils.clearLog();
-//            System.out.println(encryptedString.getBytes());
-//            System.out.println(Utils.decrypt(encryptedString.getBytes(), decryptedPassword));
         });
 
         VBox decryptionRegion = new VBox(decryptedByteEditor, decryptionHbox);
@@ -266,51 +231,11 @@ public class App extends Application {
         return hashRegion;
     }
 
-    private Region createTestInputRegion() {
-        // Create a Label
-        Label label = new Label("This is a test input area");
-        // Create a text field
-        TextField textField = new TextField();
-        // Create a button to submit the text
-        Button button = new Button("Test");
-
-        button.setOnAction(e -> {
-            String text = textField.getText();
-            byteEditor.loadByteArray(text.getBytes());
-        });
-
-        HBox hbox = new HBox(label, textField, button);
-        hbox.setAlignment(Pos.CENTER);
-        hbox.setSpacing(10);
-        return hbox;
-    }
-
-    // Fill the data list with hexadecimal data
-    private void byteToHexObservableList(byte[] bytes, ObservableList<ObservableList<StringProperty>> data) {
-        data.clear();
-        for (int i = 0; i < bytes.length; i += 10) {
-            ObservableList<StringProperty> row = FXCollections.observableArrayList();
-            for (int j = 0; j < 10 && i + j < bytes.length; j++) {
-                byte b = bytes[i + j];
-                row.add(new SimpleStringProperty(String.format("%02X", b)));
-            }
-            data.add(row);
-        }
-    }
-
-//    public byte[] readFile() throws IOException {
-//        if (file != null) {
-//            return Files.readAllBytes(file.toPath());
-//        }
-//
-//        return null;
-//    }
-
     public byte[] readFile() throws IOException {
         if (file != null) {
             try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file))) {
                 ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-                byte[] chunk = new byte[4096]; // Leer en bloques de 4 KB
+                byte[] chunk = new byte[4096];
                 int bytesRead;
                 while ((bytesRead = bis.read(chunk)) != -1) {
                     buffer.write(chunk, 0, bytesRead);
