@@ -11,6 +11,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
+import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
@@ -89,6 +90,14 @@ public class ByteEditor extends VBox {
     public void refreshTables() {
         asciiTable.refresh();
         hexTable.refresh();
+    }
+
+    public byte[] getBytes() {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        for (byte[] row : data) {
+            baos.write(row, 0, row.length);
+        }
+        return baos.toByteArray();
     }
 
     private void setupTable(TableView<byte[]> table, boolean isHex) {
