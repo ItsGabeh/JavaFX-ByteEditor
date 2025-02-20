@@ -154,10 +154,9 @@ public class App extends Application {
             fileChooser.setInitialDirectory(new File(System.getProperty("user.home") + "/Documents"));
             File f = fileChooser.showSaveDialog(null);
             if (f != null) {
-                try (FileOutputStream fos = new FileOutputStream(f)){
-                    fos.write(encryptedBytes);
-                    System.out.println("Saved file: " + f.getAbsolutePath());
-                }  catch (IOException ex) {
+                try {
+                    saveToFile(encryptedBytes, f);
+                } catch (IOException ex) {
                     throw new RuntimeException(ex);
                 }
             }
