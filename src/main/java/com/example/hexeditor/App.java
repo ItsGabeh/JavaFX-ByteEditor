@@ -21,9 +21,11 @@ public class App extends Application {
     private final ByteEditor encryptedByteEditor = new ByteEditor(); // This byteEditor is used to see encrypted file
     private final ByteEditor decryptedByteEditor = new ByteEditor();
     private final ByteEditor hashByteEditor = new ByteEditor();
-    private byte[] encryptedBytes;// stores the encrypted bytes for general use
     TextArea logArea = new TextArea();
     private File file;
+
+    private byte[] originalBytes; // keep the original bytes read from file
+    private byte[] encryptedBytes;// stores the encrypted bytes for general use
 
     @Override
     public void start(Stage stage) {
@@ -57,8 +59,6 @@ public class App extends Application {
         fileName.setDisable(true);
         fileName.setEditable(false);
 
-        // extension filter for file chooser
-
         // configure the button
         openButton.setOnAction(e -> {
             FileChooser fileChooser = new FileChooser();
@@ -67,7 +67,8 @@ public class App extends Application {
             if (f != null) {
                 file = f;
                 try {
-                    byteEditor.loadByteArray(readFile());
+                    originalBytes = readFile(); // load the bytes
+                    byteEditor.loadByteArray(originalBytes);
                 } catch (Exception ex) {
                     Alert alert = new Alert(Alert.AlertType.ERROR, "Error loading file", ButtonType.OK);
                     alert.showAndWait();
@@ -139,16 +140,10 @@ public class App extends Application {
 
         encryptButton.setOnAction(e -> {
             String encryptedPassword = password.getText();
-            byte[] read;
-            // Read the file
-            try {
-                read = readFile();
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
+            if (originalBytes != null) {
+                encryptedBytes = Utils.encrypt(originalBytes, encryptedPassword);// change this to read the file
+                encryptedByteEditor.loadByteArray(encryptedBytes);
             }
-
-            encryptedBytes = Utils.encrypt(read, encryptedPassword);// change this to read the file
-            encryptedByteEditor.loadByteArray(encryptedBytes);
         });
 
         saveButton.setOnAction(e -> {
@@ -191,8 +186,10 @@ public class App extends Application {
         decryptionHbox.setSpacing(10);
 
         decrypButton.setOnAction(e -> {
-            String decryptedPassword = password.getText();
-            decryptedByteEditor.loadByteArray(Utils.decrypt(encryptedBytes, decryptedPassword));
+            if (encryptedBytes != null) {
+                String decryptedPassword = password.getText();
+                decryptedByteEditor.loadByteArray(Utils.decrypt(encryptedBytes, decryptedPassword));
+            }
         });
 
         VBox decryptionRegion = new VBox(decryptedByteEditor, decryptionHbox);
@@ -210,16 +207,11 @@ public class App extends Application {
         hashText.setEditable(false);
         Button hashButton = new Button("Hash");
         hashButton.setOnAction(e -> {
-            byte[] read = null;
-            // Read the file
-            try {
-                read = readFile();
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
+            if (originalBytes != null) {
+                String hash = Utils.hash(originalBytes);
+                hashByteEditor.loadByteArray(hash.getBytes());
+                hashText.setText(hash);
             }
-            String hash = Utils.hash(read);
-            hashByteEditor.loadByteArray(hash.getBytes());
-            hashText.setText(hash);
         });
         HBox hashHbox = new HBox(hashText, hashButton);
         hashHbox.setAlignment(Pos.CENTER);
