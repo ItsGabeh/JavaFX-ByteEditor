@@ -26,7 +26,7 @@ public class App extends Application {
     private File file;
 
     private byte[] originalBytes; // keep the original bytes read from file
-    private byte[] encryptedBytes;// stores the encrypted bytes for general use
+    private byte[] encryptedBytes; // stores the encrypted bytes for general use
 
     @Override
     public void start(Stage stage) {
@@ -190,6 +190,20 @@ public class App extends Application {
             if (encryptedBytes != null) {
                 String decryptedPassword = password.getText();
                 decryptedByteEditor.loadByteArray(Utils.decrypt(encryptedBytes, decryptedPassword));
+            }
+        });
+
+        saveButton.setOnAction(e -> {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Save File");
+            fileChooser.setInitialDirectory(new File(System.getProperty("user.home") + "/Documents"));
+            File f = fileChooser.showSaveDialog(null);
+            if (f != null) {
+                try {
+                    saveToFile(decryptedByteEditor.getBytes(), f);
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
             }
         });
 
