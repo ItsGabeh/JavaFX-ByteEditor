@@ -14,7 +14,7 @@ public class Utils {
     public static byte[] encrypt(byte[] plainText, String password) {
         byte[] data = plainText.clone();
         int n = data.length;
-
+        log.clear();
         log.add("Iniciando cifrado...");
 
         // Derivación de constantes (se asume que la contraseña tiene al menos 4 dígitos)
@@ -100,6 +100,8 @@ public class Utils {
     public static byte[] decrypt(byte[] cipherText, String password) {
         byte[] data = cipherText.clone();
         int n = data.length;
+        log.clear();
+        log.add("Iniciando descifrado...");
 
         byte k1 = (byte)(password.charAt(0) - '0');
         byte k2 = (byte)(password.charAt(1) - '0');
@@ -171,31 +173,85 @@ public class Utils {
     }
 
 
+//    public static String hash(byte[] data) {
+//        // Step 1 acc inspired in FNV-1a
+//        long acc = 0x811C9DC5L;
+//
+//        // Step 2 and 3 iterate bytes, xor and mult by a const
+//        for (byte b : data) {
+//            acc ^= (b & 0xFF);      // XOR no sign
+//            acc *= 0x01000193L;
+//        }
+//
+//        // Step 4 sum array length
+//        acc += data.length;
+//
+//        // NO SIGNS, get abs of acc
+//        acc = Math.abs(acc);
+//
+//        // Step 5 acc to base 36 string
+//        String hashStr = Long.toString(acc, 36);
+//
+//        // Step 6 fill the string with 10 chars
+//        if (hashStr.length() < 10) {
+//            hashStr = String.format("%10s", hashStr).replace(' ', '0'); // fill with zeros
+//        } else if (hashStr.length() > 10) {
+//            hashStr = hashStr.substring(0, 10); // Trunk
+//        }
+//
+//        return hashStr;
+//    }
+
     public static String hash(byte[] data) {
-        // Step 1 acc inspired in FNV-1a
+        // Step 1: Inicialización del acumulador (inspirado en FNV-1a pero con más entropía)
         long acc = 0x811C9DC5L;
+        log.clear();
+        log.add(String.format("Calculando acumulador (FNV-1a) -> %d", acc));
 
-        // Step 2 and 3 iterate bytes, xor and mult by a const
+        // Step 2: Iterar sobre los bytes con XOR, multiplicación y rotación
         for (byte b : data) {
-            acc ^= (b & 0xFF);      // XOR no sign
-            acc *= 0x01000193L;
+            acc ^= (b & 0xFF);            // XOR con byte
+            acc *= 0x01000193L;           // Multiplicación con una constante prima
+            acc = Long.rotateLeft(acc, 13) ^ 0x9E3779B97F4A7C15L; // Rotación + constante de dispersión
         }
+        log.add("Iterando...");
+        log.add("XOR con byte");
+        log.add(String.format("Multiplicando acumulador -> %d * %d", acc, 0x01000193L));
+        log.add(String.format("Rotando a la izquierda por %d mas constante de dispersión %d", 13, 0x9E3779B97F4A7C15L));
 
-        // Step 4 sum array length
-        acc += data.length;
+        // Step 3: Mezcla final para mejorar la difusión
+        acc ^= (acc >>> 33);
+        acc *= 0xC2B2AE3D27D4EB4FL;
+        acc ^= (acc >>> 29);
+        acc *= 0x9E3779B97F4A7C15L;
+        acc ^= (acc >>> 32);
+        log.add(String.format("Mezclando acumulador -> %d >>> 33", acc));
+        log.add(String.format("Mezclando acumulador -> %d * %d", acc, 0xC2B2AE3D27D4EB4FL));
+        log.add(String.format("Mezclando acumulador -> %d >>> 29", acc));
+        log.add(String.format("Mezclando acumulador -> %d * %d", acc, 0x9E3779B97F4A7C15L));
+        log.add(String.format("Mezclando acumulador -> %d >>> 32", acc));
 
-        // NO SIGNS, get abs of acc
+        // Step 4: Incorporar la longitud del array
+        acc += data.length * 0x85EBCA77C2B2AE63L;
+        log.add(String.format("Sumando a acumulador -> %d * %d", data.length, 0x85EBCA77C2B2AE63L));
+
+
+        // Step 5: Asegurar un valor positivo
         acc = Math.abs(acc);
+        log.add("Obteniendo valor absoluto de acumulador");
 
-        // Step 5 acc to base 36 string
+        // Step 6: Convertir a base 36
         String hashStr = Long.toString(acc, 36);
+        log.add("Convirtiendo a string en base 36 -> " + hashStr);
 
-        // Step 6 fill the string with 10 chars
+        // Step 7: Ajustar la longitud a 10 caracteres
         if (hashStr.length() < 10) {
-            hashStr = String.format("%10s", hashStr).replace(' ', '0'); // fill with zeros
+            hashStr = String.format("%10s", hashStr).replace(' ', '0'); // Rellenar con ceros
         } else if (hashStr.length() > 10) {
-            hashStr = hashStr.substring(0, 10); // Trunk
+            hashStr = hashStr.substring(0, 10); // Truncar
         }
+        log.add("Ajustando longitud de caracteres");
+        log.add("Terminado");
 
         return hashStr;
     }
@@ -206,9 +262,5 @@ public class Utils {
             builder.append(s).append("\n");
         }
         return builder.toString();
-    }
-
-    public static void clearLog() {
-        log.clear();
     }
 }
