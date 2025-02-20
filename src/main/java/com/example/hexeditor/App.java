@@ -21,7 +21,8 @@ public class App extends Application {
     private final ByteEditor encryptedByteEditor = new ByteEditor(); // This byteEditor is used to see encrypted file
     private final ByteEditor decryptedByteEditor = new ByteEditor();
     private final ByteEditor hashByteEditor = new ByteEditor();
-    TextArea logArea = new TextArea();
+    private final TextArea logArea = new TextArea();
+
     private File file;
 
     private byte[] originalBytes; // keep the original bytes read from file
@@ -140,8 +141,9 @@ public class App extends Application {
 
         encryptButton.setOnAction(e -> {
             String encryptedPassword = password.getText();
-            if (originalBytes != null) {
-                encryptedBytes = Utils.encrypt(originalBytes, encryptedPassword);// change this to read the file
+            byte[] currentBytes = byteEditor.getBytes();
+            if (currentBytes != null) {
+                encryptedBytes = Utils.encrypt(currentBytes, encryptedPassword);// change this to read the file
                 encryptedByteEditor.loadByteArray(encryptedBytes);
             }
         });
@@ -207,8 +209,9 @@ public class App extends Application {
         hashText.setEditable(false);
         Button hashButton = new Button("Hash");
         hashButton.setOnAction(e -> {
-            if (originalBytes != null) {
-                String hash = Utils.hash(originalBytes);
+            byte[] currentBytes = byteEditor.getBytes();
+            if (currentBytes != null) {
+                String hash = Utils.hash(currentBytes);
                 hashByteEditor.loadByteArray(hash.getBytes());
                 hashText.setText(hash);
             }
