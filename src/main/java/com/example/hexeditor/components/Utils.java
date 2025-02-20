@@ -13,53 +13,62 @@ public class Utils {
 
     public static byte[] encrypt(byte[] plainText, String password) {
         byte[] data = plainText.clone();
+        int n = data.length;
+
+        // Derivación de constantes (se asume que la contraseña tiene al menos 4 dígitos)
         byte k1 = (byte)(password.charAt(0) - '0');
         byte k2 = (byte)(password.charAt(1) - '0');
         byte k3 = (byte)(password.charAt(2) - '0');
         byte k4 = (byte)(password.charAt(3) - '0');
-        int rotateAmount = k3 % 8;
+        int rotateAmount = k3 % 8;  // cantidad de bits a rotar
 
-        // Paso 1: Sumar k1
-        for (int i = 0; i < data.length; i++) {
-            data[i] = (byte)(data[i] + k1);
+        // Bucle combinado para pasos 1 a 7
+        for (int i = 0; i < n; i++) {
+            // Se trata el byte como valor sin signo (0 a 255)
+            int val = data[i] & 0xFF;
+
+            // Paso 1: Sumar k1 (operación modular 8 bits)
+            val = (val + k1) & 0xFF;
+
+            // Paso 2: XOR con k2
+            val = val ^ k2;
+
+            // Paso 3: Rotación a la izquierda
+            val = leftRotate(val, rotateAmount);
+
+            // Paso 4: Sumar el índice
+            val = (val + i) & 0xFF;
+
+            // Paso 5: Restar k4
+            val = (val - k4) & 0xFF;
+
+            // Paso 6: Ajuste según paridad del índice: pares +1, impares -1
+            if (i % 2 == 0) {
+                val = (val + 1) & 0xFF;
+            } else {
+                val = (val - 1) & 0xFF;
+            }
+
+            // Paso 7: XOR con el índice
+            val = val ^ i;
+
+            data[i] = (byte) val;
         }
-        // Paso 2: XOR con k2
-        for (int i = 0; i < data.length; i++) {
-            data[i] = (byte)(data[i] ^ k2);
-        }
-        // Paso 3: Rotar a la izquierda
-        for (int i = 0; i < data.length; i++) {
-            data[i] = (byte) leftRotate(data[i], rotateAmount);
-        }
-        // Paso 4: Sumar el índice
-        for (int i = 0; i < data.length; i++) {
-            data[i] = (byte)(data[i] + i);
-        }
-        // Paso 5: Restar k4
-        for (int i = 0; i < data.length; i++) {
-            data[i] = (byte)(data[i] - k4);
-        }
-        // Paso 6: Ajuste según paridad del índice
-        for (int i = 0; i < data.length; i++) {
-            if (i % 2 == 0)
-                data[i] = (byte)(data[i] + 1);
-            else
-                data[i] = (byte)(data[i] - 1);
-        }
-        // Paso 7: XOR con el índice
-        for (int i = 0; i < data.length; i++) {
-            data[i] = (byte)(data[i] ^ i);
-        }
+
         // Paso 8: Revertir el array
-        for (int i = 0, j = data.length - 1; i < j; i++, j--) {
+        for (int i = 0, j = n - 1; i < j; i++, j--) {
             byte temp = data[i];
             data[i] = data[j];
             data[j] = temp;
         }
-        // Paso 9: Rotar a la derecha
-        for (int i = 0; i < data.length; i++) {
-            data[i] = (byte) rightRotate(data[i], rotateAmount);
+
+        // Paso 9: Rotación a la derecha
+        for (int i = 0; i < n; i++) {
+            int val = data[i] & 0xFF;
+            val = rightRotate(val, rotateAmount);
+            data[i] = (byte) val;
         }
+
         return data;
     }
 
@@ -85,53 +94,60 @@ public class Utils {
 
     public static byte[] decrypt(byte[] cipherText, String password) {
         byte[] data = cipherText.clone();
+        int n = data.length;
+
         byte k1 = (byte)(password.charAt(0) - '0');
         byte k2 = (byte)(password.charAt(1) - '0');
         byte k3 = (byte)(password.charAt(2) - '0');
         byte k4 = (byte)(password.charAt(3) - '0');
         int rotateAmount = k3 % 8;
 
-        // Inverso del paso 9: Rotar a la izquierda
-        for (int i = 0; i < data.length; i++) {
-            data[i] = (byte) leftRotate(data[i], rotateAmount);
+        // Paso inverso 9: Rotar a la izquierda (inverso de rotar a la derecha)
+        for (int i = 0; i < n; i++) {
+            int val = data[i] & 0xFF;
+            val = leftRotate(val, rotateAmount);
+            data[i] = (byte) val;
         }
-        // Inverso del paso 8: Revertir el array
-        for (int i = 0, j = data.length - 1; i < j; i++, j--) {
+
+        // Paso inverso 8: Revertir el array (reversión es su propio inverso)
+        for (int i = 0, j = n - 1; i < j; i++, j--) {
             byte temp = data[i];
             data[i] = data[j];
             data[j] = temp;
         }
-        // Inverso del paso 7: XOR con el índice
-        for (int i = 0; i < data.length; i++) {
-            data[i] = (byte)(data[i] ^ i);
+
+        // Bucle combinado para invertir los pasos 7 a 1 (en orden inverso)
+        for (int i = 0; i < n; i++) {
+            int val = data[i] & 0xFF;
+
+            // Inverso del paso 7: XOR con el índice
+            val = val ^ i;
+
+            // Inverso del paso 6: Ajuste de paridad (aquí, para índices pares se resta 1 y para impares se suma 1)
+            if (i % 2 == 0) {
+                val = (val - 1) & 0xFF;
+            } else {
+                val = (val + 1) & 0xFF;
+            }
+
+            // Inverso del paso 5: Sumar k4
+            val = (val + k4) & 0xFF;
+
+            // Inverso del paso 4: Restar el índice
+            val = (val - i) & 0xFF;
+
+            // Inverso del paso 3: Rotar a la derecha (inverso de la rotación a la izquierda)
+            val = rightRotate(val, rotateAmount);
+
+            // Inverso del paso 2: XOR con k2
+            val = val ^ k2;
+
+            // Inverso del paso 1: Restar k1
+            val = (val - k1) & 0xFF;
+
+            data[i] = (byte) val;
         }
-        // Inverso del paso 6: Ajuste según paridad (para pares restar 1, impares sumar 1)
-        for (int i = 0; i < data.length; i++) {
-            if (i % 2 == 0)
-                data[i] = (byte)(data[i] - 1);
-            else
-                data[i] = (byte)(data[i] + 1);
-        }
-        // Inverso del paso 5: Sumar k4
-        for (int i = 0; i < data.length; i++) {
-            data[i] = (byte)(data[i] + k4);
-        }
-        // Inverso del paso 4: Restar el índice
-        for (int i = 0; i < data.length; i++) {
-            data[i] = (byte)(data[i] - i);
-        }
-        // Inverso del paso 3: Rotar a la derecha
-        for (int i = 0; i < data.length; i++) {
-            data[i] = (byte) rightRotate(data[i], rotateAmount);
-        }
-        // Inverso del paso 2: XOR con k2
-        for (int i = 0; i < data.length; i++) {
-            data[i] = (byte)(data[i] ^ k2);
-        }
-        // Inverso del paso 1: Restar k1
-        for (int i = 0; i < data.length; i++) {
-            data[i] = (byte)(data[i] - k1);
-        }
+
         return data;
     }
 

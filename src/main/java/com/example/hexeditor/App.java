@@ -298,11 +298,26 @@ public class App extends Application {
         }
     }
 
+//    public byte[] readFile() throws IOException {
+//        if (file != null) {
+//            return Files.readAllBytes(file.toPath());
+//        }
+//
+//        return null;
+//    }
+
     public byte[] readFile() throws IOException {
         if (file != null) {
-            return Files.readAllBytes(file.toPath());
+            try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file))) {
+                ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+                byte[] chunk = new byte[4096]; // Leer en bloques de 4 KB
+                int bytesRead;
+                while ((bytesRead = bis.read(chunk)) != -1) {
+                    buffer.write(chunk, 0, bytesRead);
+                }
+                return buffer.toByteArray();
+            }
         }
-
         return null;
     }
 
