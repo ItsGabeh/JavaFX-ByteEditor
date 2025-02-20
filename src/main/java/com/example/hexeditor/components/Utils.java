@@ -12,165 +12,127 @@ public class Utils {
     private static List<String> log = new ArrayList<>();
 
     public static byte[] encrypt(byte[] plainText, String password) {
-        byte[] result = plainText.clone();
+        byte[] data = plainText.clone();
+        byte k1 = (byte)(password.charAt(0) - '0');
+        byte k2 = (byte)(password.charAt(1) - '0');
+        byte k3 = (byte)(password.charAt(2) - '0');
+        byte k4 = (byte)(password.charAt(3) - '0');
+        int rotateAmount = k3 % 8;
 
-        // Step 1:
-        // Get first byte of password and add it to all bytes
-        char firstByte = (char) (password.charAt(0) - '0');
-        for (int i = 0; i < plainText.length; i++) {
-            result[i] = (byte) ((result[i] + firstByte) % 127); // Suma con módulo 256
+        // Paso 1: Sumar k1
+        for (int i = 0; i < data.length; i++) {
+            data[i] = (byte)(data[i] + k1);
         }
-        // Step 2:
-        // Get last byte from password and add it to all bytes
-        char lastByte = (char) (password.charAt(password.length() - 1) - '0');
-        for (int i = 0; i < plainText.length; i++) {
-            result[i] = (byte) ((result[i] + lastByte) % 127); // Suma con módulo 256
+        // Paso 2: XOR con k2
+        for (int i = 0; i < data.length; i++) {
+            data[i] = (byte)(data[i] ^ k2);
         }
-
-        // Step 3
-        // sum 1 to odd indexes
-        for (int i = 1; i < plainText.length; i += 2) {
-            result[i]++;
+        // Paso 3: Rotar a la izquierda
+        for (int i = 0; i < data.length; i++) {
+            data[i] = (byte) leftRotate(data[i], rotateAmount);
         }
-
-        // Step 4
-        // subtract 1 to even indexes
-        for (int i = 0; i < plainText.length; i += 2) {
-            result[i]--;
+        // Paso 4: Sumar el índice
+        for (int i = 0; i < data.length; i++) {
+            data[i] = (byte)(data[i] + i);
         }
-
-        // Step 5
-        // Get left middle index of password and divide it by 2
-        // xor with each index
-        byte leftMiddle = password.charAt(1) > '0' ? (byte) ((password.charAt(1) - '0') / 2) : 2;
-        for (int i = 0; i < plainText.length; i++) {
-            result[i] = (byte) (result[i] ^ leftMiddle);
+        // Paso 5: Restar k4
+        for (int i = 0; i < data.length; i++) {
+            data[i] = (byte)(data[i] - k4);
         }
-
-        // Step 6
-        // left shift bytes by 3
-        byte bits = 8;
-        for (int i = 0; i < plainText.length; i++) {
-            result[i] = (byte) leftRotate(result[i], 4);
+        // Paso 6: Ajuste según paridad del índice
+        for (int i = 0; i < data.length; i++) {
+            if (i % 2 == 0)
+                data[i] = (byte)(data[i] + 1);
+            else
+                data[i] = (byte)(data[i] - 1);
         }
-
-        // Step 7
-        // divide password in 2
-        byte left = (byte) (password.charAt(0) - '0'+ (password.charAt(1) - '0'));
-        byte r = (byte) (password.charAt(3) - '0' + (password.charAt(2) - '0'));
-        for (int i = 0; i < plainText.length; i++) {
-            result[i] = (byte) (result[i] % 2 == 0 ? result[i] ^ left : result[i] ^ r);
+        // Paso 7: XOR con el índice
+        for (int i = 0; i < data.length; i++) {
+            data[i] = (byte)(data[i] ^ i);
         }
-
-
-        // Step 8
-        // get right middle character of password
-        // AND its value with a mask
-        byte bitmask = 15;
-        byte rightMiddle = (byte) ((password.charAt(2) - '0') ^ bitmask);
-        for (int i = 0; i < plainText.length; i++) {
-            result[i] = (byte)(result[i] ^ rightMiddle);
+        // Paso 8: Revertir el array
+        for (int i = 0, j = data.length - 1; i < j; i++, j--) {
+            byte temp = data[i];
+            data[i] = data[j];
+            data[j] = temp;
         }
-
-        // Step 9
-        // reverse array
-        int right = plainText.length - 1;
-        for (int i = 0; i < right; i++, right--) {
-            result[i] = (byte) (result[i] ^ result[right]);
-            result[right] = (byte) (result[right] ^ result[i]);
-            result[i] = (byte) (result[i] ^ result[right]);
+        // Paso 9: Rotar a la derecha
+        for (int i = 0; i < data.length; i++) {
+            data[i] = (byte) rightRotate(data[i], rotateAmount);
         }
-
-        return result;
+        return data;
     }
+
+//    static int leftRotate(int x, int n) {
+//        int mask = (1 << 8) - 1;
+//        return mask & ((x << n) | (x >>> (8 - n)));
+//    }
+//
+//    private static int rightRotate(int x, int n) {
+//        int mask = (1 << 8) - 1;
+//        return mask & ((x << (8 - n)) | (x >>> n));
+//    }
 
     static int leftRotate(int x, int n) {
-        int mask = (1 << 7) - 1;
-        return mask & ((x << n) | (x >>> (7 - n)));
+        int y = x & 0xFF; // Convertir a 8 bits sin signo
+        return ((y << n) | (y >>> (8 - n))) & 0xFF;
     }
 
-    private static int rigthRotate(int x, int n) {
-        int mask = (1 << 7) - 1;
-        return mask & ((x << (7 - n)) | (x >>> n));
+    private static int rightRotate(int x, int n) {
+        int y = x & 0xFF; // Convertir a 8 bits sin signo
+        return ((y >>> n) | (y << (8 - n))) & 0xFF;
     }
 
     public static byte[] decrypt(byte[] cipherText, String password) {
-        // Trabajamos sobre una copia de cipherText para no modificar el original.
-        byte[] result = cipherText.clone();
+        byte[] data = cipherText.clone();
+        byte k1 = (byte)(password.charAt(0) - '0');
+        byte k2 = (byte)(password.charAt(1) - '0');
+        byte k3 = (byte)(password.charAt(2) - '0');
+        byte k4 = (byte)(password.charAt(3) - '0');
+        int rotateAmount = k3 % 8;
 
-        // Step 1 revert reversing
-        // reverse array
-        int right = cipherText.length - 1;
-        for (int i = 0; i < right; i++, right--) {
-            result[i] = (byte) (result[i] ^ result[right]);
-            result[right] = (byte) (result[right] ^ result[i]);
-            result[i] = (byte) (result[i] ^ result[right]);
+        // Inverso del paso 9: Rotar a la izquierda
+        for (int i = 0; i < data.length; i++) {
+            data[i] = (byte) leftRotate(data[i], rotateAmount);
         }
-
-        // Step 2
-        // get right middle character of password
-        // AND its value with a mask
-        byte bitmask = 15;
-        byte rightMiddle = (byte) ((password.charAt(2) - '0') ^ bitmask);
-        for (int i = 0; i < cipherText.length; i++) {
-            result[i] = (byte)(result[i] ^ rightMiddle);
+        // Inverso del paso 8: Revertir el array
+        for (int i = 0, j = data.length - 1; i < j; i++, j--) {
+            byte temp = data[i];
+            data[i] = data[j];
+            data[j] = temp;
         }
-
-
-        // Step 3
-        // divide password in 2
-        byte left = (byte) (password.charAt(0) - '0' + (password.charAt(1) - '0'));
-        byte r = (byte) (password.charAt(3) - '0' + (password.charAt(2) - '0'));
-        for (int i = 0; i < result.length; i++) {
-            if ((result[i] ^ left) % 2 == 0) {
-                result[i] = (byte) (result[i] ^ left);
-            } else {
-                result[i] = (byte) (result[i] ^ r);
-            }
+        // Inverso del paso 7: XOR con el índice
+        for (int i = 0; i < data.length; i++) {
+            data[i] = (byte)(data[i] ^ i);
         }
-
-        // step 4
-        // revert right shift by 3
-        byte bits = 8;
-        for (int i = 0; i < cipherText.length; i++) {
-            result[i] = (byte) rigthRotate(result[i], 4);
-            // result[i] = (byte) Integer.rotateLeft(result[i], bits);
+        // Inverso del paso 6: Ajuste según paridad (para pares restar 1, impares sumar 1)
+        for (int i = 0; i < data.length; i++) {
+            if (i % 2 == 0)
+                data[i] = (byte)(data[i] - 1);
+            else
+                data[i] = (byte)(data[i] + 1);
         }
-
-        // step 5
-        // Get the left middle of password and multiply it by 2
-        byte leftMiddle = password.charAt(1) > '0' ? (byte) ((password.charAt(1) - '0') / 2) : 2;
-        for (int i = 0; i < cipherText.length; i++) {
-            result[i] = (byte) (result[i] ^ leftMiddle);
+        // Inverso del paso 5: Sumar k4
+        for (int i = 0; i < data.length; i++) {
+            data[i] = (byte)(data[i] + k4);
         }
-
-        // step 6
-        // add 1 to even indexes
-        for (int i = 0; i < cipherText.length; i += 2) {
-            result[i]++;
+        // Inverso del paso 4: Restar el índice
+        for (int i = 0; i < data.length; i++) {
+            data[i] = (byte)(data[i] - i);
         }
-
-        // step 7
-        // subtract 1 to odd indexes
-        for(int i = 1; i < result.length; i += 2) {
-            result[i]--;
+        // Inverso del paso 3: Rotar a la derecha
+        for (int i = 0; i < data.length; i++) {
+            data[i] = (byte) rightRotate(data[i], rotateAmount);
         }
-
-        // step 8
-        // get last byte of password and subtract it
-        byte lastByte = (byte) (password.charAt(password.length() - 1) - '0');
-        for (int i = 0; i < result.length; i++) {
-            result[i] = (byte) ((result[i] - lastByte + 127) % 127);
+        // Inverso del paso 2: XOR con k2
+        for (int i = 0; i < data.length; i++) {
+            data[i] = (byte)(data[i] ^ k2);
         }
-
-        // step 9
-        // get  first byte of password and subtract it
-        byte firstByte = (byte) (password.charAt(0) - '0');
-        for (int i = 0; i < result.length; i++) {
-            result[i] = (byte) ((result[i] - firstByte + 127) % 127); // Resta con módulo 256
+        // Inverso del paso 1: Restar k1
+        for (int i = 0; i < data.length; i++) {
+            data[i] = (byte)(data[i] - k1);
         }
-
-        return result;
+        return data;
     }
 
     public static String hash(byte[] data) {
