@@ -15,12 +15,17 @@ public class Utils {
         byte[] data = plainText.clone();
         int n = data.length;
 
+        log.add("Iniciando cifrado...");
+
         // Derivación de constantes (se asume que la contraseña tiene al menos 4 dígitos)
         byte k1 = (byte)(password.charAt(0) - '0');
         byte k2 = (byte)(password.charAt(1) - '0');
         byte k3 = (byte)(password.charAt(2) - '0');
         byte k4 = (byte)(password.charAt(3) - '0');
         int rotateAmount = k3 % 8;  // cantidad de bits a rotar
+
+        log.add(String.format("Contraseña procesada -> k1=%d, k2=%d, k3=%d, k4=%d", k1, k2, k3, k4));
+        log.add(String.format("Calculando rotacion: %d mod 8 = %d", k3, rotateAmount));
 
         // Bucle combinado para pasos 1 a 7
         for (int i = 0; i < n; i++) {
@@ -54,6 +59,14 @@ public class Utils {
 
             data[i] = (byte) val;
         }
+        log.add("Transformando bytes a valores sin signo -> byte[i] & 0xFF = valor");
+        log.add(String.format("Sumando k1 -> (valor + %d ) & 0xFF", k1));
+        log.add(String.format("XOR con K2 -> valor ^ %d", k2));
+        log.add(String.format("Rotacion a la izquierda por %d", rotateAmount));
+        log.add("Sumando indice -> valor + i");
+        log.add(String.format("Restando k4 -> (valor - %d) ^ OxFF", k4));
+        log.add("Ajuste de paridad -> pares + 1, impares - 1");
+        log.add("XOR con indice");
 
         // Paso 8: Revertir el array
         for (int i = 0, j = n - 1; i < j; i++, j--) {
@@ -61,6 +74,7 @@ public class Utils {
             data[i] = data[j];
             data[j] = temp;
         }
+        log.add("Revirtiendo array...");
 
         // Paso 9: Rotación a la derecha
         for (int i = 0; i < n; i++) {
@@ -68,19 +82,10 @@ public class Utils {
             val = rightRotate(val, rotateAmount);
             data[i] = (byte) val;
         }
-
+        log.add(String.format("Rotando a la derecha por %d", rotateAmount));
+        log.add("Terminado");
         return data;
     }
-
-//    static int leftRotate(int x, int n) {
-//        int mask = (1 << 8) - 1;
-//        return mask & ((x << n) | (x >>> (8 - n)));
-//    }
-//
-//    private static int rightRotate(int x, int n) {
-//        int mask = (1 << 8) - 1;
-//        return mask & ((x << (8 - n)) | (x >>> n));
-//    }
 
     static int leftRotate(int x, int n) {
         int y = x & 0xFF; // Convertir a 8 bits sin signo
@@ -102,12 +107,16 @@ public class Utils {
         byte k4 = (byte)(password.charAt(3) - '0');
         int rotateAmount = k3 % 8;
 
+        log.add(String.format("Contraseña procesada -> k1=%d, k2=%d, k3=%d, k4=%d", k1, k2, k3, k4));
+        log.add(String.format("Calculando rotacion: %d mod 8 = %d", k3, rotateAmount));
+
         // Paso inverso 9: Rotar a la izquierda (inverso de rotar a la derecha)
         for (int i = 0; i < n; i++) {
             int val = data[i] & 0xFF;
             val = leftRotate(val, rotateAmount);
             data[i] = (byte) val;
         }
+        log.add(String.format("Rotando a la izquierda por %d", rotateAmount));
 
         // Paso inverso 8: Revertir el array (reversión es su propio inverso)
         for (int i = 0, j = n - 1; i < j; i++, j--) {
@@ -115,6 +124,7 @@ public class Utils {
             data[i] = data[j];
             data[j] = temp;
         }
+        log.add("Revirtiendo array...");
 
         // Bucle combinado para invertir los pasos 7 a 1 (en orden inverso)
         for (int i = 0; i < n; i++) {
@@ -147,9 +157,19 @@ public class Utils {
 
             data[i] = (byte) val;
         }
+        log.add("Transformando bytes a valores sin signo -> byte[i] & 0xFF = valor");
+        log.add("XOR con indice");
+        log.add("Ajuste de paridad -> pares - 1, impares + 1");
+        log.add(String.format("Sumando k4 -> (valor + %d) ^ OxFF", k4));
+        log.add("Restando indice -> valor - i");
+        log.add(String.format("Rotacion a la derecha por %d", rotateAmount));
+        log.add(String.format("XOR con K2 -> valor ^ %d", k2));
+        log.add(String.format("Restandp k1 -> (valor - %d ) & 0xFF", k1));
+        log.add("Terminado");
 
         return data;
     }
+
 
     public static String hash(byte[] data) {
         // Step 1 acc inspired in FNV-1a
@@ -180,6 +200,13 @@ public class Utils {
         return hashStr;
     }
 
+    public static String getLog() {
+        StringBuilder builder = new StringBuilder();
+        for (String s : log) {
+            builder.append(s).append("\n");
+        }
+        return builder.toString();
+    }
 
     public static void clearLog() {
         log.clear();
