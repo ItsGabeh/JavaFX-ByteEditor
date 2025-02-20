@@ -30,7 +30,7 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) {
-        Scene scene = new Scene(createContent(), 800, 850);
+        Scene scene = new Scene(createContent(), 800, 860);
         stage.setScene(scene);
         stage.setResizable(false);
         stage.setTitle("Hex Editor");
@@ -91,7 +91,7 @@ public class App extends Application {
         Tab decryptionTab = new Tab("Decryption");
         Tab hashTab = new Tab("Hash");
 
-        tabPane.setMaxHeight(270);
+        tabPane.setMaxHeight(320);
         encryptionTab.setClosable(false);
         decryptionTab.setClosable(false);
         hashTab.setClosable(false);
