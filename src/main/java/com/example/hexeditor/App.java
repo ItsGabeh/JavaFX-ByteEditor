@@ -113,6 +113,9 @@ public class App extends Application {
         logArea.setWrapText(true);
 
         Button cleanButton = new Button("Clean");
+        cleanButton.setOnAction(e -> {
+            logArea.clear();
+        });
         VBox vBox = new VBox(logArea, cleanButton);
         vBox.setAlignment(Pos.CENTER);
         vBox.setSpacing(10);
@@ -145,6 +148,7 @@ public class App extends Application {
             if (currentBytes != null) {
                 encryptedBytes = Utils.encrypt(currentBytes, encryptedPassword);// change this to read the file
                 encryptedByteEditor.loadByteArray(encryptedBytes);
+                logArea.appendText("\n" + Utils.getLog());
             }
         });
 
@@ -190,6 +194,7 @@ public class App extends Application {
             if (encryptedBytes != null) {
                 String decryptedPassword = password.getText();
                 decryptedByteEditor.loadByteArray(Utils.decrypt(encryptedBytes, decryptedPassword));
+                logArea.appendText("\n" + Utils.getLog());
             }
         });
 
@@ -227,6 +232,7 @@ public class App extends Application {
                 String hash = Utils.hash(currentBytes);
                 hashByteEditor.loadByteArray(hash.getBytes());
                 hashText.setText(hash);
+                logArea.appendText("\n" + Utils.getLog());
             }
         });
         HBox hashHbox = new HBox(hashText, hashButton);
