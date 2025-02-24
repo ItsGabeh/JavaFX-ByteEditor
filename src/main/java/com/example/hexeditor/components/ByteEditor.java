@@ -143,6 +143,9 @@ public class ByteEditor extends VBox {
                         posSpinner.getValueFactory().setValue(row * 10 + col);
                     }
 
+                    // 📌 Sincronizar selección entre tablas
+                    syncTables(row, col + 1);
+
                     // Actualizar campos de edición
                     byte selectedByte = data.get(row)[col];
                     hexTextField.setText(byteToHex(selectedByte));
@@ -164,11 +167,7 @@ public class ByteEditor extends VBox {
                 if (row < data.size() && col < data.get(row).length) {
                     // ⚡ Evita loops infinitos
                     if (!isTableSelected(row, col + 1)) {
-                        hexTable.getSelectionModel().clearAndSelect(row, hexTable.getColumns().get(col + 1));
-                        asciiTable.getSelectionModel().clearAndSelect(row, asciiTable.getColumns().get(col + 1));
-
-                        hexTable.scrollTo(row);
-                        asciiTable.scrollTo(row);
+                        syncTables(row, col + 1);
                     }
 
                     // Actualizar `TextField`
@@ -180,13 +179,23 @@ public class ByteEditor extends VBox {
         });
     }
 
-    // Método auxiliar para evitar bucles infinitos
+    // 📌 Método para sincronizar selección en ambas tablas
+    private void syncTables(int row, int col) {
+        hexTable.getSelectionModel().clearAndSelect(row, hexTable.getColumns().get(col));
+        asciiTable.getSelectionModel().clearAndSelect(row, asciiTable.getColumns().get(col));
+
+        hexTable.scrollTo(row);
+        asciiTable.scrollTo(row);
+    }
+
+    // 🛑 Evita loops infinitos verificando si ya está seleccionada la celda
     private boolean isTableSelected(int row, int col) {
         TablePosition<?, ?> hexPos = hexTable.getSelectionModel().getSelectedCells().stream().findFirst().orElse(null);
         TablePosition<?, ?> asciiPos = asciiTable.getSelectionModel().getSelectedCells().stream().findFirst().orElse(null);
         return (hexPos != null && hexPos.getRow() == row && hexPos.getColumn() == col) ||
                 (asciiPos != null && asciiPos.getRow() == row && asciiPos.getColumn() == col);
     }
+
 
     private void setupEditorControls() {
         posSpinner.setEditable(true);
