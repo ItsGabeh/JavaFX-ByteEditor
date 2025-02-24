@@ -135,18 +135,15 @@ public class ByteEditor extends VBox {
             if (!change.getList().isEmpty()) {
                 TablePosition<?, ?> tablePosition = change.getList().getFirst();
                 int row = tablePosition.getRow();
-                int col = tablePosition.getColumn() - 1; // Ajustar porque la primera columna es el índice
+                int col = tablePosition.getColumn() - 1;
 
                 if (col >= 0 && row < data.size() && col < data.get(row).length) {
-                    // ⚡ Evita loops infinitos
                     if (posSpinner.getValue() != row * 10 + col) {
                         posSpinner.getValueFactory().setValue(row * 10 + col);
                     }
 
-                    // 📌 Sincronizar selección entre tablas
                     syncTables(row, col + 1);
 
-                    // Actualizar campos de edición
                     byte selectedByte = data.get(row)[col];
                     hexTextField.setText(byteToHex(selectedByte));
                     asciiTextField.setText(byteToAscii(selectedByte));
@@ -154,23 +151,20 @@ public class ByteEditor extends VBox {
             }
         };
 
-        // 🖱️ Escuchar selección en ambas tablas
         hexTable.getSelectionModel().getSelectedCells().addListener(tableListener);
         asciiTable.getSelectionModel().getSelectedCells().addListener(tableListener);
 
-        // 🔢 Escuchar cambios en el Spinner
         posSpinner.valueProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
                 int row = newVal / 10;
                 int col = newVal % 10;
 
                 if (row < data.size() && col < data.get(row).length) {
-                    // ⚡ Evita loops infinitos
+
                     if (!isTableSelected(row, col + 1)) {
                         syncTables(row, col + 1);
                     }
 
-                    // Actualizar `TextField`
                     byte selectedByte = data.get(row)[col];
                     hexTextField.setText(byteToHex(selectedByte));
                     asciiTextField.setText(byteToAscii(selectedByte));
@@ -179,7 +173,6 @@ public class ByteEditor extends VBox {
         });
     }
 
-    // 📌 Método para sincronizar selección en ambas tablas
     private void syncTables(int row, int col) {
         hexTable.getSelectionModel().clearAndSelect(row, hexTable.getColumns().get(col));
         asciiTable.getSelectionModel().clearAndSelect(row, asciiTable.getColumns().get(col));
@@ -188,7 +181,6 @@ public class ByteEditor extends VBox {
         asciiTable.scrollTo(row);
     }
 
-    // 🛑 Evita loops infinitos verificando si ya está seleccionada la celda
     private boolean isTableSelected(int row, int col) {
         TablePosition<?, ?> hexPos = hexTable.getSelectionModel().getSelectedCells().stream().findFirst().orElse(null);
         TablePosition<?, ?> asciiPos = asciiTable.getSelectionModel().getSelectedCells().stream().findFirst().orElse(null);
