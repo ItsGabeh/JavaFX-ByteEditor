@@ -131,34 +131,65 @@ public class ByteEditor extends VBox {
     }
 
     private void syncSelection() {
-        ListChangeListener<TablePosition> listener = change -> {
+        ListChangeListener<TablePosition> tableListener = change -> {
             if (!change.getList().isEmpty()) {
                 TablePosition<?, ?> tablePosition = change.getList().getFirst();
                 int row = tablePosition.getRow();
-                int col = tablePosition.getColumn() - 1;
+                int col = tablePosition.getColumn() - 1; // Ajustar porque la primera columna es el índice
 
                 if (col >= 0 && row < data.size() && col < data.get(row).length) {
-                    hexTable.getSelectionModel().clearAndSelect(row, hexTable.getColumns().get(col + 1));
-                    asciiTable.getSelectionModel().clearAndSelect(row, asciiTable.getColumns().get(col + 1));
+                    // ⚡ Evita loops infinitos
+                    if (posSpinner.getValue() != row * 10 + col) {
+                        posSpinner.getValueFactory().setValue(row * 10 + col);
+                    }
 
-                    hexTable.scrollTo(row);
-                    asciiTable.scrollTo(row);
-
-                    posSpinner.getValueFactory().setValue(row * 10 + col);
+                    // Actualizar campos de edición
                     byte selectedByte = data.get(row)[col];
-
                     hexTextField.setText(byteToHex(selectedByte));
                     asciiTextField.setText(byteToAscii(selectedByte));
                 }
             }
         };
 
-        hexTable.getSelectionModel().getSelectedCells().addListener(listener);
-        asciiTable.getSelectionModel().getSelectedCells().addListener(listener);
+        // 🖱️ Escuchar selección en ambas tablas
+        hexTable.getSelectionModel().getSelectedCells().addListener(tableListener);
+        asciiTable.getSelectionModel().getSelectedCells().addListener(tableListener);
+
+        // 🔢 Escuchar cambios en el Spinner
+        posSpinner.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                int row = newVal / 10;
+                int col = newVal % 10;
+
+                if (row < data.size() && col < data.get(row).length) {
+                    // ⚡ Evita loops infinitos
+                    if (!isTableSelected(row, col + 1)) {
+                        hexTable.getSelectionModel().clearAndSelect(row, hexTable.getColumns().get(col + 1));
+                        asciiTable.getSelectionModel().clearAndSelect(row, asciiTable.getColumns().get(col + 1));
+
+                        hexTable.scrollTo(row);
+                        asciiTable.scrollTo(row);
+                    }
+
+                    // Actualizar `TextField`
+                    byte selectedByte = data.get(row)[col];
+                    hexTextField.setText(byteToHex(selectedByte));
+                    asciiTextField.setText(byteToAscii(selectedByte));
+                }
+            }
+        });
+    }
+
+    // Método auxiliar para evitar bucles infinitos
+    private boolean isTableSelected(int row, int col) {
+        TablePosition<?, ?> hexPos = hexTable.getSelectionModel().getSelectedCells().stream().findFirst().orElse(null);
+        TablePosition<?, ?> asciiPos = asciiTable.getSelectionModel().getSelectedCells().stream().findFirst().orElse(null);
+        return (hexPos != null && hexPos.getRow() == row && hexPos.getColumn() == col) ||
+                (asciiPos != null && asciiPos.getRow() == row && asciiPos.getColumn() == col);
     }
 
     private void setupEditorControls() {
-        posSpinner.setEditable(false);
+        posSpinner.setEditable(true);
         posSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 0, 0));
         posSpinner.setDisable(true);
 
