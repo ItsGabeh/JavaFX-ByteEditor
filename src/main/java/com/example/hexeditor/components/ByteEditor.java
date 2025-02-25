@@ -84,7 +84,8 @@ public class ByteEditor extends VBox {
     }
 
     private String byteToAscii(byte b) {
-        return (b >= 32 && b <= 126) ? String.valueOf((char) b) : ".";
+//        return (b >= 32 && b <= 126) ? String.valueOf((char) b) : ".";
+        return String.valueOf((char) b);
     }
 
     public void refreshTables() {
